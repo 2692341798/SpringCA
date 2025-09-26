@@ -202,6 +202,72 @@ public class ProductService {
      * @return 库存不足的商品列表
      */
     public List<Product> getLowStockProducts(int threshold) {
-        return productRepository.findLowStockProducts(threshold);
+        return productRepository.findByStockLessThanAndActiveTrue(threshold);
+    }
+    
+    /**
+     * 获取相关商品推荐
+     * @param product 当前商品
+     * @param limit 推荐数量限制
+     * @return 相关商品列表
+     */
+    public List<Product> getRelatedProducts(Product product, int limit) {
+        try {
+            // 优先推荐同分类的商品
+            List<Product> relatedProducts = productRepository.findByCategoryAndActiveTrueAndIdNot(
+                product.getCategory(), product.getId(), PageRequest.of(0, limit)
+            ).getContent();
+            
+            // 如果同分类商品不足，补充同品牌的商品
+            if (relatedProducts.size() < limit) {
+                int remaining = limit - relatedProducts.size();
+                List<Product> brandProducts = productRepository.findByBrandAndActiveTrueAndIdNotIn(
+                    product.getBrand(), 
+                    relatedProducts.stream().map(Product::getId).toList(),
+                    PageRequest.of(0, remaining)
+                ).getContent();
+                relatedProducts.addAll(brandProducts);
+            }
+            
+            // 如果还不足，补充其他热门商品
+            if (relatedProducts.size() < limit) {
+                int remaining = limit - relatedProducts.size();
+                List<Product> popularProducts = productRepository.findByActiveTrueAndIdNotIn(
+                    relatedProducts.stream().map(Product::getId).toList(),
+                    PageRequest.of(0, remaining, Sort.by("reviewCount").descending())
+                ).getContent();
+                relatedProducts.addAll(popularProducts);
+            }
+            
+            return relatedProducts.subList(0, Math.min(relatedProducts.size(), limit));
+            
+        } catch (Exception e) {
+            log.error("获取相关商品推荐失败，商品ID: {}", product.getId(), e);
+            return List.of();
+        }
+    }
+    
+    /**
+     * 获取搜索建议
+     * @param query 搜索查询词
+     * @param limit 建议数量限制
+     * @return 搜索建议列表
+     */
+    public List<Product> getSearchSuggestions(String query, int limit) {
+        try {
+            if (query == null || query.trim().length() < 2) {
+                return List.of();
+            }
+            
+            String keyword = query.trim();
+            Pageable pageable = PageRequest.of(0, limit, Sort.by("reviewCount").descending());
+            
+            // 搜索商品名称包含关键词的商品
+            return productRepository.searchProducts(keyword, pageable).getContent();
+            
+        } catch (Exception e) {
+            log.error("获取搜索建议失败，查询词: {}", query, e);
+            return List.of();
+        }
     }
 }

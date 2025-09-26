@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">React商品列表 - SpringCA购物车系统</title>
+    <meta name="description" th:content="${pageDescription}">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- 自定义样式 -->
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .nav-pills .nav-link {
+            border-radius: 25px;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .nav-pills .nav-link:not(.active) {
+            color: #6c757d;
+            background: #f8f9fa;
+        }
+        
+        .nav-pills .nav-link:not(.active):hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .react-container {
+            min-height: 600px;
+            padding: 0;
+        }
+        
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+            flex-direction: column;
+        }
+        
+        .feature-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.875rem;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: rgba(0, 0, 0, 0.1);">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-cart-check me-2"></i>
+                SpringCA购物车系统
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="bi bi-house me-1"></i>首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products">
+                            <i class="bi bi-grid me-1"></i>传统商品列表
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/react/products">
+                            <i class="bi bi-lightning me-1"></i>React商品列表
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cart">
+                            <i class="bi bi-cart me-1"></i>购物车
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/login">
+                            <i class="bi bi-person me-1"></i>登录
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主容器 -->
+    <div class="container my-4">
+        <div class="main-container">
+            <!-- 头部区域 -->
+            <div class="header-section">
+                <h1 class="mb-3">
+                    <i class="bi bi-lightning-charge me-2"></i>
+                    React商品列表
+                    <span class="feature-badge">Sprint 3</span>
+                </h1>
+                <p class="lead mb-4">
+                    使用React技术实现的现代化商品展示页面，支持实时搜索、筛选和购物车操作
+                </p>
+                
+                <!-- 功能导航 -->
+                <ul class="nav nav-pills justify-content-center">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/react/products">
+                            <i class="bi bi-grid-3x3-gap me-1"></i>
+                            商品列表
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/react/cart">
+                            <i class="bi bi-cart-dash me-1"></i>
+                            购物车管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/react">
+                            <i class="bi bi-info-circle me-1"></i>
+                            功能演示
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- React组件容器 -->
+            <div class="react-container">
+                <div id="react-product-list">
+                    <!-- React组件将在这里渲染 -->
+                    <div class="loading-spinner">
+                        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                        <p class="mt-3 text-muted">正在加载React组件...</p>
+                        <small class="text-muted">如果长时间未加载，请检查网络连接或刷新页面</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="text-center py-4" style="background: rgba(0, 0, 0, 0.1); color: white;">
+        <div class="container">
+            <p class="mb-2">
+                <strong>SpringCA购物车系统 - Sprint 3</strong>
+            </p>
+            <p class="mb-0">
+                <small>
+                    <i class="bi bi-code-slash me-1"></i>
+                    集成React + REST API功能演示
+                    <span class="mx-2">|</span>
+                    <i class="bi bi-calendar me-1"></i>
+                    2024年9月26日
+                </small>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- React组件脚本 -->
+    <script>
+        // 检查React组件是否加载成功
+        setTimeout(() => {
+            const reactContainer = document.getElementById('react-product-list');
+            const loadingSpinner = reactContainer.querySelector('.loading-spinner');
+            
+            if (loadingSpinner && loadingSpinner.style.display !== 'none') {
+                // 如果React组件未加载，显示错误信息
+                reactContainer.innerHTML = `
+                    <div class="alert alert-warning m-4" role="alert">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            React组件加载失败
+                        </h5>
+                        <p class="mb-3">
+                            React组件可能尚未构建或部署。请按照以下步骤操作：
+                        </p>
+                        <ol class="mb-3">
+                            <li>确保已安装Node.js和npm</li>
+                            <li>在项目根目录运行：<code>mvn clean install</code></li>
+                            <li>等待前端构建完成后刷新页面</li>
+                        </ol>
+                        <hr>
+                        <p class="mb-0">
+                            <a href="/products" class="btn btn-primary">
+                                <i class="bi bi-arrow-left me-1"></i>
+                                返回传统商品列表
+                            </a>
+                            <button class="btn btn-outline-secondary ms-2" onclick="location.reload()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>
+                                重新加载
+                            </button>
+                        </p>
+                    </div>
+                `;
+            }
+        }, 5000); // 5秒后检查
+    </script>
+    
+    <!-- 引入React构建的JS文件 -->
+    <script src="/react/static/js/main.js" onerror="console.log('React组件JS文件未找到')"></script>
+</body>
+</html>

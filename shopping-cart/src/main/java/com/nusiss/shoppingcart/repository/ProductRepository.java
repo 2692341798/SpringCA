@@ -101,4 +101,37 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     @Query("SELECT DISTINCT p.brand FROM Product p WHERE p.active = true AND p.brand IS NOT NULL")
     List<String> findAllBrands();
+    
+    /**
+     * 查找库存低于阈值的商品
+     * @param threshold 库存阈值
+     * @return 库存不足的商品列表
+     */
+    List<Product> findByStockLessThanAndActiveTrue(Integer threshold);
+    
+    /**
+     * 根据分类查找商品，排除指定ID的商品
+     * @param category 分类
+     * @param excludeId 要排除的商品ID
+     * @param pageable 分页参数
+     * @return 商品分页结果
+     */
+    Page<Product> findByCategoryAndActiveTrueAndIdNot(String category, Long excludeId, Pageable pageable);
+    
+    /**
+     * 根据品牌查找商品，排除指定ID列表的商品
+     * @param brand 品牌
+     * @param excludeIds 要排除的商品ID列表
+     * @param pageable 分页参数
+     * @return 商品分页结果
+     */
+    Page<Product> findByBrandAndActiveTrueAndIdNotIn(String brand, List<Long> excludeIds, Pageable pageable);
+    
+    /**
+     * 查找活跃商品，排除指定ID列表的商品
+     * @param excludeIds 要排除的商品ID列表
+     * @param pageable 分页参数
+     * @return 商品分页结果
+     */
+    Page<Product> findByActiveTrueAndIdNotIn(List<Long> excludeIds, Pageable pageable);
 }
