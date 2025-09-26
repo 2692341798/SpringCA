@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>订单历史 - 购物车系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .order-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: box-shadow 0.3s ease;
+        }
+        .order-card:hover {
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        .order-header {
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        .price-text {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .status-badge {
+            font-size: 0.9rem;
+            padding: 6px 12px;
+        }
+        .filter-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .empty-orders {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .order-summary {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="bi bi-cart-fill me-2"></i>购物车系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/products}">商品</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/cart}">
+                            <i class="bi bi-cart3"></i> 购物车
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/orders}">
+                            <i class="bi bi-list-ul"></i> 订单
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/auth/logout}">
+                            <i class="bi bi-box-arrow-right"></i> 退出
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 页面标题 -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2><i class="bi bi-list-ul me-2"></i>我的订单</h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}">首页</a></li>
+                        <li class="breadcrumb-item active">订单历史</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- 筛选区域 -->
+        <div class="filter-section">
+            <form method="get" th:action="@{/orders}">
+                <div class="row align-items-end">
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">订单状态</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">全部状态</option>
+                            <option th:each="orderStatus : ${orderStatuses}" 
+                                    th:value="${orderStatus.name()}" 
+                                    th:text="${orderStatus.description}"
+                                    th:selected="${currentStatus == orderStatus.name()}">状态</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="size" class="form-label">每页显示</label>
+                        <select class="form-select" id="size" name="size">
+                            <option value="10" th:selected="${orderPage.size == 10}">10条</option>
+                            <option value="20" th:selected="${orderPage.size == 20}">20条</option>
+                            <option value="50" th:selected="${orderPage.size == 50}">50条</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-2"></i>筛选
+                        </button>
+                        <a th:href="@{/orders}" class="btn btn-outline-secondary ms-2">
+                            <i class="bi bi-arrow-clockwise me-2"></i>重置
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 订单列表 -->
+        <div th:if="${orderPage.hasContent()}">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">
+                    共 <strong th:text="${orderPage.totalElements}">0</strong> 个订单
+                </span>
+                <span class="text-muted">
+                    第 <strong th:text="${orderPage.number + 1}">1</strong> 页，共 <strong th:text="${orderPage.totalPages}">1</strong> 页
+                </span>
+            </div>
+
+            <div class="order-card" th:each="order : ${orderPage.content}">
+                <!-- 订单头部 -->
+                <div class="order-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6 class="mb-1">
+                                订单号：<a th:href="@{/orders/{orderNumber}(orderNumber=${order.orderNumber})}" 
+                                         class="text-decoration-none" 
+                                         th:text="${order.orderNumber}">ORD20240101001</a>
+                            </h6>
+                            <small class="text-muted">
+                                下单时间：<span th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm')}">2024-01-01 10:00</span>
+                            </small>
+                        </div>
+                        <div class="col-md-3 text-md-center">
+                            <span class="badge status-badge" 
+                                  th:classappend="${order.status.name() == 'PENDING' ? 'bg-warning text-dark' : 
+                                                  order.status.name() == 'PAID' ? 'bg-info' : 
+                                                  order.status.name() == 'SHIPPED' ? 'bg-primary' : 
+                                                  order.status.name() == 'DELIVERED' ? 'bg-success' : 'bg-secondary'}"
+                                  th:text="${order.status.description}">待支付</span>
+                        </div>
+                        <div class="col-md-3 text-md-end">
+                            <span class="price-text">¥<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}">0.00</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 订单商品预览 -->
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="d-flex flex-wrap">
+                            <!-- 显示前3个商品的图片 -->
+                            <div th:each="item, iterStat : ${order.orderItems}" 
+                                 th:if="${iterStat.index < 3}"
+                                 class="me-3 mb-2">
+                                <img th:src="${item.product.imageUrl ?: '/images/default-product.jpg'}" 
+                                     th:alt="${item.productName}" 
+                                     class="product-image"
+                                     th:title="${item.productName}">
+                            </div>
+                            <!-- 如果商品超过3个，显示更多提示 -->
+                            <div th:if="${order.orderItems.size() > 3}" 
+                                 class="d-flex align-items-center justify-content-center product-image bg-light text-muted">
+                                <small>+<span th:text="${order.orderItems.size() - 3}">2</span></small>
+                            </div>
+                        </div>
+                        
+                        <!-- 收货信息 -->
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                收货人：<span th:text="${order.recipientName}">张三</span>
+                                <span class="ms-3">电话：<span th:text="${order.recipientPhone}">13800138000</span></span>
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- 订单操作 -->
+                    <div class="col-md-4">
+                        <div class="order-summary">
+                            <div class="d-flex justify-content-between mb-2">
+                                <small>商品数量：</small>
+                                <small><span th:text="${order.totalQuantity}">3</span> 件</small>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <small>支付方式：</small>
+                                <small th:text="${order.paymentMethod}">在线支付</small>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <!-- 查看详情 -->
+                                <a th:href="@{/orders/{orderNumber}(orderNumber=${order.orderNumber})}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye me-1"></i>查看详情
+                                </a>
+                                
+                                <!-- 立即支付 -->
+                                <button class="btn btn-primary btn-sm" 
+                                        th:if="${order.status.name() == 'PENDING'}"
+                                        th:onclick="'payOrder(\'' + ${order.orderNumber} + '\')'">
+                                    <i class="bi bi-credit-card me-1"></i>立即支付
+                                </button>
+                                
+                                <!-- 取消订单 -->
+                                <button class="btn btn-outline-danger btn-sm" 
+                                        th:if="${order.canBeCancelled()}"
+                                        th:onclick="'cancelOrder(\'' + ${order.orderNumber} + '\')'">
+                                    <i class="bi bi-x-circle me-1"></i>取消订单
+                                </button>
+                                
+                                <!-- 确认收货 -->
+                                <button class="btn btn-success btn-sm" 
+                                        th:if="${order.status.name() == 'SHIPPED'}"
+                                        th:onclick="'confirmDelivery(\'' + ${order.orderNumber} + '\')'">
+                                    <i class="bi bi-check-circle me-1"></i>确认收货
+                                </button>
+                                
+                                <!-- 再次购买 -->
+                                <button class="btn btn-outline-secondary btn-sm" 
+                                        th:if="${order.status.name() == 'DELIVERED'}"
+                                        th:onclick="'buyAgain(\'' + ${order.orderNumber} + '\')'">
+                                    <i class="bi bi-arrow-repeat me-1"></i>再次购买
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分页 -->
+            <div class="pagination-container" th:if="${orderPage.totalPages > 1}">
+                <nav aria-label="订单分页">
+                    <ul class="pagination">
+                        <!-- 上一页 -->
+                        <li class="page-item" th:classappend="${orderPage.first} ? 'disabled'">
+                            <a class="page-link" 
+                               th:href="@{/orders(page=${orderPage.number - 1}, size=${orderPage.size}, status=${currentStatus})}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        
+                        <!-- 页码 -->
+                        <li class="page-item" 
+                            th:each="pageNum : ${#numbers.sequence(0, orderPage.totalPages - 1)}"
+                            th:if="${pageNum >= orderPage.number - 2 and pageNum <= orderPage.number + 2}"
+                            th:classappend="${pageNum == orderPage.number} ? 'active'">
+                            <a class="page-link" 
+                               th:href="@{/orders(page=${pageNum}, size=${orderPage.size}, status=${currentStatus})}"
+                               th:text="${pageNum + 1}">1</a>
+                        </li>
+                        
+                        <!-- 下一页 -->
+                        <li class="page-item" th:classappend="${orderPage.last} ? 'disabled'">
+                            <a class="page-link" 
+                               th:href="@{/orders(page=${orderPage.number + 1}, size=${orderPage.size}, status=${currentStatus})}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <!-- 空订单状态 -->
+        <div class="empty-orders" th:if="${!orderPage.hasContent()}">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
+            <h4 class="mt-3">暂无订单</h4>
+            <p>您还没有任何订单，快去购买您喜欢的商品吧！</p>
+            <a th:href="@{/products}" class="btn btn-primary">
+                <i class="bi bi-shop me-2"></i>去购物
+            </a>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 订单操作脚本 -->
+    <script>
+        // 支付订单
+        function payOrder(orderNumber) {
+            if (!confirm('确认支付此订单吗？')) {
+                return;
+            }
+            
+            fetch(`/orders/${orderNumber}/pay`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('支付成功！', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showMessage(data.message || '支付失败', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('支付失败，请稍后重试', 'danger');
+            });
+        }
+        
+        // 取消订单
+        function cancelOrder(orderNumber) {
+            if (!confirm('确定要取消此订单吗？取消后库存将恢复。')) {
+                return;
+            }
+            
+            fetch(`/orders/${orderNumber}/cancel`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('订单已取消', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showMessage(data.message || '取消失败', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('取消失败，请稍后重试', 'danger');
+            });
+        }
+        
+        // 确认收货
+        function confirmDelivery(orderNumber) {
+            if (!confirm('确认已收到商品吗？')) {
+                return;
+            }
+            
+            fetch(`/orders/${orderNumber}/confirm`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('确认收货成功！', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showMessage(data.message || '确认失败', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('确认失败，请稍后重试', 'danger');
+            });
+        }
+        
+        // 再次购买
+        function buyAgain(orderNumber) {
+            if (confirm('确定要将这些商品重新加入购物车吗？')) {
+                // 这里可以实现将订单商品重新加入购物车的逻辑
+                showMessage('商品已加入购物车', 'success');
+                setTimeout(() => {
+                    window.location.href = '/cart';
+                }, 1500);
+            }
+        }
+        
+        // 显示消息
+        function showMessage(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const container = document.querySelector('.container');
+            const firstChild = container.firstElementChild;
+            container.insertBefore(alertDiv, firstChild.nextElementSibling);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

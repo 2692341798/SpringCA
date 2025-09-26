@@ -11,10 +11,52 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             border: none;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
         .product-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .product-card:active {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+        }
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+            z-index: 1;
+        }
+        .product-card:hover::before {
+            left: 100%;
+        }
+        .product-card .card-body {
+            position: relative;
+            z-index: 2;
+        }
+        .product-card .card-img-top {
+            transition: transform 0.3s ease;
+        }
+        .product-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+        .product-card .btn {
+            transition: all 0.2s ease;
+            z-index: 3;
+            position: relative;
+        }
+        .product-card .btn:hover {
+            transform: scale(1.05);
+        }
+        .product-card-clickable {
+            user-select: none;
         }
         .product-image {
             height: 200px;
@@ -58,6 +100,17 @@
                     </li>
                 </ul>
                 <ul class="navbar-nav">
+                    <li class="nav-item" th:if="${session.currentUser != null}">
+                        <a class="nav-link" th:href="@{/cart}">
+                            <i class="bi bi-cart3"></i> 购物车
+                            <span class="badge bg-warning text-dark ms-1" id="cart-count">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${session.currentUser != null}">
+                        <a class="nav-link" th:href="@{/orders}">
+                            <i class="bi bi-list-ul"></i> 订单
+                        </a>
+                    </li>
                     <li class="nav-item" th:if="${session.currentUser == null}">
                         <a class="nav-link" th:href="@{/auth/login}">登录</a>
                     </li>
@@ -67,11 +120,11 @@
                     <li class="nav-item dropdown" th:if="${session.currentUser != null}">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle me-1"></i>
-                            <span th:text="${session.username}">用户</span>
+                            <span th:text="${session.currentUser.username}">用户</span>
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>个人中心</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-bag me-2"></i>我的订单</a></li>
+                            <li><a class="dropdown-item" th:href="@{/orders}"><i class="bi bi-bag me-2"></i>我的订单</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" th:href="@{/auth/logout}"><i class="bi bi-box-arrow-right me-2"></i>退出登录</a></li>
                         </ul>
@@ -202,7 +255,9 @@
 
                 <div th:unless="${#lists.isEmpty(products)}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                     <div class="col" th:each="product : ${products}">
-                        <div class="card product-card h-100">
+                        <div class="card product-card h-100" 
+                             th:data-product-id="${product.id}"
+                             onclick="navigateToProduct(this)">
                             <img th:src="${product.imageUrl != null ? product.imageUrl : '/images/no-image.png'}" 
                                  class="card-img-top product-image" th:alt="${product.name}" />
                             <div class="card-body d-flex flex-column">
@@ -234,10 +289,14 @@
                                 <!-- 操作按钮 -->
                                 <div class="mt-auto">
                                     <div class="d-grid gap-2">
-                                        <a th:href="@{/products/{id}(id=${product.id})}" class="btn btn-primary btn-sm">
+                                        <a th:href="@{/products/{id}(id=${product.id})}" 
+                                           class="btn btn-primary btn-sm"
+                                           onclick="event.stopPropagation();">
                                             <i class="bi bi-eye me-1"></i>查看详情
                                         </a>
-                                        <button class="btn btn-outline-primary btn-sm" th:if="${product.stock > 0}">
+                                        <button class="btn btn-outline-primary btn-sm" 
+                                                th:if="${product.stock > 0}"
+                                                th:onclick="'addToCart(' + ${product.id} + '); event.stopPropagation();'">
                                             <i class="bi bi-cart-plus me-1"></i>加入购物车
                                         </button>
                                         <button class="btn btn-outline-secondary btn-sm" th:if="${product.stock == 0}" disabled>
@@ -301,5 +360,134 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 购物车操作脚本 -->
+    <script th:inline="javascript">
+        const isLoggedIn = /*[[${session.currentUser != null}]]*/ false;
+        
+        // 页面加载时获取购物车数量和预加载
+        window.addEventListener('load', function() {
+            if (isLoggedIn) {
+                updateCartCount();
+                preloadCartPage();
+            }
+        });
+        
+        // 预加载购物车页面
+        function preloadCartPage() {
+            // 预加载购物车页面资源
+            const link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.href = '/cart';
+            document.head.appendChild(link);
+            
+            // 预加载购物车数据
+            setTimeout(() => {
+                fetch('/cart/count')
+                .then(response => response.json())
+                .catch(error => console.log('预加载购物车数据失败:', error));
+            }, 1000);
+        }
+        
+        // 商品卡片点击跳转
+        function navigateToProduct(cardElement) {
+            const productId = cardElement.getAttribute('data-product-id');
+            if (productId) {
+                // 添加点击效果
+                cardElement.style.transform = 'translateY(-2px)';
+                cardElement.style.boxShadow = '0 3px 15px rgba(0,0,0,0.2)';
+                
+                // 延迟跳转，让用户看到点击效果
+                setTimeout(() => {
+                    window.location.href = `/products/${productId}`;
+                }, 150);
+            }
+        }
+        
+        // 添加商品到购物车
+        function addToCart(productId) {
+            if (!isLoggedIn) {
+                if (confirm('请先登录后再添加商品到购物车')) {
+                    window.location.href = '/auth/login';
+                }
+                return;
+            }
+            
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            
+            // 禁用按钮，防止重复点击
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>添加中...';
+            
+            fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `productId=${productId}&quantity=1`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('商品已添加到购物车！', 'success');
+                    updateCartCount();
+                } else {
+                    showMessage(data.message || '添加失败', 'danger');
+                    if (data.redirect) {
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 1500);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('添加失败，请稍后重试', 'danger');
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                button.disabled = false;
+                button.innerHTML = originalText;
+            });
+        }
+        
+        // 更新购物车数量
+        function updateCartCount() {
+            if (!isLoggedIn) return;
+            
+            fetch('/cart/count')
+            .then(response => response.json())
+            .then(data => {
+                const cartCountElement = document.getElementById('cart-count');
+                if (cartCountElement) {
+                    cartCountElement.textContent = data.count || 0;
+                }
+            })
+            .catch(error => {
+                console.error('获取购物车数量失败:', error);
+            });
+        }
+        
+        // 显示消息
+        function showMessage(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const container = document.querySelector('.container');
+            const firstChild = container.firstElementChild;
+            container.insertBefore(alertDiv, firstChild.nextElementSibling);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
