@@ -167,7 +167,7 @@ SpringCA/
 
 1. **克隆项目**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/2692341798/SpringCA.git
    cd SpringCA
    ```
 
