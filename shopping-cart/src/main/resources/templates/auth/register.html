@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册 - 购物车系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .register-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 0;
+        }
+        .register-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-register {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .password-strength {
+            height: 5px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container d-flex align-items-center justify-content-center">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="register-card p-4">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-person-plus-fill text-primary" style="font-size: 3rem;"></i>
+                            <h2 class="mt-3 mb-1">创建账户</h2>
+                            <p class="text-muted">加入我们，开始购物之旅</p>
+                        </div>
+
+                        <!-- 错误消息 -->
+                        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <span th:text="${errorMessage}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <!-- 注册表单 -->
+                        <form th:action="@{/auth/register}" method="post" id="registerForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="firstName" class="form-label">
+                                        <i class="bi bi-person me-1"></i>姓名
+                                    </label>
+                                    <input type="text" class="form-control" id="firstName" name="firstName" 
+                                           placeholder="请输入姓名">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="lastName" class="form-label">
+                                        <i class="bi bi-person me-1"></i>姓氏
+                                    </label>
+                                    <input type="text" class="form-control" id="lastName" name="lastName" 
+                                           placeholder="请输入姓氏">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="username" class="form-label">
+                                    <i class="bi bi-person-circle me-1"></i>用户名 <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       placeholder="请输入用户名（至少3个字符）" required minlength="3">
+                                <div class="form-text">用户名将用于登录，至少3个字符</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope me-1"></i>邮箱地址 <span class="text-danger">*</span>
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="请输入邮箱地址" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">
+                                    <i class="bi bi-telephone me-1"></i>手机号码
+                                </label>
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       placeholder="请输入手机号码">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="address" class="form-label">
+                                    <i class="bi bi-geo-alt me-1"></i>地址
+                                </label>
+                                <textarea class="form-control" id="address" name="address" rows="2" 
+                                          placeholder="请输入详细地址"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">
+                                    <i class="bi bi-lock me-1"></i>密码 <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="请输入密码（至少6个字符）" required minlength="6">
+                                <div class="password-strength mt-2" id="passwordStrength"></div>
+                                <div class="form-text">密码至少6个字符，建议包含字母和数字</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">
+                                    <i class="bi bi-lock-fill me-1"></i>确认密码 <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" 
+                                       placeholder="请再次输入密码" required>
+                                <div class="invalid-feedback" id="passwordMismatch">
+                                    两次输入的密码不一致
+                                </div>
+                            </div>
+
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                                <label class="form-check-label" for="agreeTerms">
+                                    我同意 <a href="#" class="text-decoration-none">服务条款</a> 和 
+                                    <a href="#" class="text-decoration-none">隐私政策</a>
+                                </label>
+                            </div>
+
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary btn-register">
+                                    <i class="bi bi-person-plus me-2"></i>注册账户
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="text-center">
+                            <p class="text-muted">
+                                已有账户？
+                                <a th:href="@{/auth/login}" class="text-decoration-none fw-bold">立即登录</a>
+                            </p>
+                            <hr class="my-3">
+                            <p class="text-muted">
+                                <a th:href="@{/}" class="text-decoration-none">
+                                    <i class="bi bi-arrow-left me-1"></i>返回首页
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 密码强度检测
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthBar = document.getElementById('passwordStrength');
+            
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            
+            const colors = ['#dc3545', '#fd7e14', '#ffc107', '#20c997', '#198754'];
+            const widths = ['20%', '40%', '60%', '80%', '100%'];
+            
+            if (password.length > 0) {
+                strengthBar.style.width = widths[strength - 1] || '20%';
+                strengthBar.style.backgroundColor = colors[strength - 1] || '#dc3545';
+            } else {
+                strengthBar.style.width = '0%';
+            }
+        });
+
+        // 密码确认验证
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            const mismatchDiv = document.getElementById('passwordMismatch');
+            
+            if (confirmPassword && password !== confirmPassword) {
+                this.classList.add('is-invalid');
+                mismatchDiv.style.display = 'block';
+            } else {
+                this.classList.remove('is-invalid');
+                mismatchDiv.style.display = 'none';
+            }
+        });
+
+        // 表单提交验证
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('两次输入的密码不一致，请重新输入');
+                return false;
+            }
+        });
+
+        // 自动隐藏提示消息
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

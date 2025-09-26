@@ -1,3 +1,11 @@
-com/nusiss/shoppingcart/ShoppingCartApplication.class
+com/nusiss/shoppingcart/service/UserService.class
+com/nusiss/shoppingcart/service/ProductService.class
+com/nusiss/shoppingcart/entity/Product.class
 com/nusiss/shoppingcart/controller/HomeController.class
+com/nusiss/shoppingcart/repository/ProductRepository.class
+com/nusiss/shoppingcart/config/DataInitializer.class
+com/nusiss/shoppingcart/ShoppingCartApplication.class
+com/nusiss/shoppingcart/repository/UserRepository.class
+com/nusiss/shoppingcart/controller/AuthController.class
+com/nusiss/shoppingcart/entity/User.class
 com/nusiss/shoppingcart/controller/ProductController.class
