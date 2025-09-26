@@ -445,10 +445,9 @@ docker run -p 8080:8080 springca-shopping-cart
 
 ## 📞 联系方式
 
-- **项目团队**: SpringCA开发组
-- **邮箱**: springca-team@example.com
-- **项目地址**: [GitHub Repository](https://github.com/your-username/SpringCA)
-
+- **项目团队**: SpringCA-Team1开发组
+- **邮箱**: 2692341798@qq.com
+- **项目地址**: https://github.com/2692341798/SpringCA
 ## 🙏 致谢
 
 感谢以下开源项目的支持：
