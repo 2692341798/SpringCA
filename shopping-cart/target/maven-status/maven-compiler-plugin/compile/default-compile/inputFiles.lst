@@ -8,12 +8,15 @@
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/controller/ReactController.java
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/controller/api/CartApiController.java
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/controller/api/ProductApiController.java
+/Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/dto/UserRegistrationDto.java
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/entity/Cart.java
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/entity/CartItem.java
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/entity/Order.java
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/entity/OrderItem.java
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/entity/Product.java
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/entity/User.java
+/Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/exception/BusinessException.java
+/Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/exception/GlobalExceptionHandler.java
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/repository/CartItemRepository.java
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/repository/CartRepository.java
 /Users/huangqijun/Documents/SpringCA/shopping-cart/src/main/java/com/nusiss/shoppingcart/repository/OrderItemRepository.java

@@ -246,7 +246,7 @@
                             
                             <!-- 小计和操作 -->
                             <div class="col-md-2 text-center">
-                                <div class="price-text mb-2">¥<span th:text="${#numbers.formatDecimal(item.subtotal, 1, 2)}">0.00</span></div>
+                                <div class="price-text mb-2">¥<span th:text="${#numbers.formatDecimal(item.getSubtotal(), 1, 2)}">0.00</span></div>
                                 <button class="btn btn-outline-danger btn-sm" 
                                         th:onclick="'removeItem(' + ${item.id} + ')'">
                                     <i class="bi bi-trash"></i>

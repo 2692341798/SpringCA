@@ -103,11 +103,11 @@ public class OrderService {
                 // 创建订单项
                 OrderItem orderItem = OrderItem.fromCartItem(cartItem);
                 orderItem.setOrder(order);
+                order.addOrderItem(orderItem);  // 使用addOrderItem方法，会自动计算总金额
                 orderItemRepository.save(orderItem);
             }
             
-            // 计算订单总金额
-            order.calculateTotalAmount();
+            // 保存订单（总金额已在addOrderItem中计算）
             order = orderRepository.save(order);
             
             // 清空购物车
@@ -130,7 +130,7 @@ public class OrderService {
      * @return 订单对象
      */
     public Optional<Order> getOrderByNumber(String orderNumber) {
-        return orderRepository.findByOrderNumber(orderNumber);
+        return orderRepository.findByOrderNumberWithOrderItems(orderNumber);
     }
     
     /**
@@ -151,7 +151,7 @@ public class OrderService {
      */
     public Page<Order> getUserOrders(User user, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return orderRepository.findByUser(user, pageable);
+        return orderRepository.findByUserWithOrderItems(user, pageable);
     }
     
     /**
@@ -164,7 +164,7 @@ public class OrderService {
      */
     public Page<Order> getUserOrdersByStatus(User user, Order.OrderStatus status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return orderRepository.findByUserAndStatus(user, status, pageable);
+        return orderRepository.findByUserAndStatusWithOrderItems(user, status, pageable);
     }
     
     /**
@@ -185,7 +185,7 @@ public class OrderService {
     @Transactional
     public boolean payOrder(String orderNumber, User user) {
         try {
-            Optional<Order> orderOpt = orderRepository.findByOrderNumber(orderNumber);
+            Optional<Order> orderOpt = orderRepository.findByOrderNumberWithOrderItems(orderNumber);
             if (orderOpt.isEmpty()) {
                 log.warn("订单不存在：{}", orderNumber);
                 return false;
@@ -227,7 +227,7 @@ public class OrderService {
     @Transactional
     public boolean cancelOrder(String orderNumber, User user) {
         try {
-            Optional<Order> orderOpt = orderRepository.findByOrderNumber(orderNumber);
+            Optional<Order> orderOpt = orderRepository.findByOrderNumberWithOrderItems(orderNumber);
             if (orderOpt.isEmpty()) {
                 log.warn("订单不存在：{}", orderNumber);
                 return false;
@@ -275,7 +275,7 @@ public class OrderService {
     @Transactional
     public boolean confirmDelivery(String orderNumber, User user) {
         try {
-            Optional<Order> orderOpt = orderRepository.findByOrderNumber(orderNumber);
+            Optional<Order> orderOpt = orderRepository.findByOrderNumberWithOrderItems(orderNumber);
             if (orderOpt.isEmpty()) {
                 log.warn("订单不存在：{}", orderNumber);
                 return false;

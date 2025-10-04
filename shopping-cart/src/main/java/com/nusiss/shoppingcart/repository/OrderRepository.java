@@ -28,12 +28,30 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByOrderNumber(String orderNumber);
     
     /**
+     * 根据订单号查找订单（包含订单项）
+     * @param orderNumber 订单号
+     * @return 订单对象
+     */
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.orderItems WHERE o.orderNumber = :orderNumber")
+    Optional<Order> findByOrderNumberWithOrderItems(@Param("orderNumber") String orderNumber);
+    
+    /**
      * 根据用户查找所有订单（分页）
      * @param user 用户对象
      * @param pageable 分页参数
      * @return 订单分页结果
      */
     Page<Order> findByUser(User user, Pageable pageable);
+    
+    /**
+     * 根据用户查找所有订单（分页，包含订单项）
+     * @param user 用户对象
+     * @param pageable 分页参数
+     * @return 订单分页结果
+     */
+    @Query(value = "SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.orderItems WHERE o.user = :user ORDER BY o.createdAt DESC",
+           countQuery = "SELECT COUNT(o) FROM Order o WHERE o.user = :user")
+    Page<Order> findByUserWithOrderItems(@Param("user") User user, Pageable pageable);
     
     /**
      * 根据用户ID查找所有订单（分页）
@@ -52,6 +70,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      * @return 订单分页结果
      */
     Page<Order> findByUserAndStatus(User user, Order.OrderStatus status, Pageable pageable);
+    
+    /**
+     * 根据用户和订单状态查找订单（分页，包含订单项）
+     * @param user 用户对象
+     * @param status 订单状态
+     * @param pageable 分页参数
+     * @return 订单分页结果
+     */
+    @Query(value = "SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.orderItems WHERE o.user = :user AND o.status = :status ORDER BY o.createdAt DESC",
+           countQuery = "SELECT COUNT(o) FROM Order o WHERE o.user = :user AND o.status = :status")
+    Page<Order> findByUserAndStatusWithOrderItems(@Param("user") User user, @Param("status") Order.OrderStatus status, Pageable pageable);
     
     /**
      * 根据用户ID和订单状态查找订单（分页）

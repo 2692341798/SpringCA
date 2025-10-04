@@ -108,6 +108,11 @@ public class Order {
      * 计算订单总金额
      */
     public BigDecimal calculateTotalAmount() {
+        if (orderItems == null || orderItems.isEmpty()) {
+            this.totalAmount = BigDecimal.ZERO;
+            return BigDecimal.ZERO;
+        }
+        
         BigDecimal total = orderItems.stream()
                 .map(OrderItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -189,6 +194,10 @@ public class Order {
      * 获取订单商品总数量
      */
     public Integer getTotalQuantity() {
+        if (orderItems == null || orderItems.isEmpty()) {
+            return 0;
+        }
+        
         return orderItems.stream()
                 .mapToInt(OrderItem::getQuantity)
                 .sum();
@@ -236,6 +245,16 @@ public class Order {
     }
     
     public BigDecimal getTotalAmount() {
+        // 如果orderItems已加载且不为空，重新计算总金额以确保准确性
+        if (orderItems != null && !orderItems.isEmpty()) {
+            BigDecimal calculatedTotal = orderItems.stream()
+                    .map(OrderItem::getSubtotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            // 如果计算的总金额与存储的不一致，更新存储的值
+            if (calculatedTotal.compareTo(this.totalAmount) != 0) {
+                this.totalAmount = calculatedTotal;
+            }
+        }
         return totalAmount;
     }
     

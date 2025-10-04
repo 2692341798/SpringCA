@@ -198,7 +198,7 @@
                                 <span th:text="${item.quantity}">1</span>
                             </div>
                             <div class="col-md-2 text-end">
-                                <span class="price-text">¥<span th:text="${#numbers.formatDecimal(item.subtotal, 1, 2)}">0.00</span></span>
+                                <span class="price-text">¥<span th:text="${#numbers.formatDecimal(item.getSubtotal(), 1, 2)}">0.00</span></span>
                             </div>
                         </div>
                     </div>

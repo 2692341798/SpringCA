@@ -253,7 +253,7 @@
                                         </small>
                                     </div>
                                     <div class="col-3 text-end">
-                                        <small class="price-text">¥<span th:text="${#numbers.formatDecimal(item.subtotal, 1, 2)}">0.00</span></small>
+                                        <small class="price-text">¥<span th:text="${#numbers.formatDecimal(item.getSubtotal(), 1, 2)}">0.00</span></small>
                                     </div>
                                 </div>
                             </div>
